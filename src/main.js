@@ -55,8 +55,8 @@ Vue.prototype.$bus = new Vue();
 import echarts from 'echarts';
 Vue.prototype.$echarts = echarts;
 Vue.prototype.$http = axios;
-// axios.defaults.baseURL = 'https://yuangauss287.top:8080/';
-axios.defaults.baseURL = 'http://127.0.0.1:8080';
+// axios.defaults.baseURL = 'https://124.222.218.232:8080';
+axios.defaults.baseURL = '';
 //控制当前响应完成后,才能点击下一次
 var loading;
 //axios请求拦截
@@ -91,10 +91,17 @@ axios.interceptors.response.use(
 
     // 处理没有errormessage的情况,提示默认信息
     if (res.data.error_code != 0) {
-      ElementUI.Message({
-        message: res.data.msg,
-        type: 'error',
-      });
+      if (Array.isArray(res.data.msg)) {
+        ElementUI.Message({
+          message: res.data.msg[0],
+          type: 'error',
+        });
+      } else {
+        ElementUI.Message({
+          message: res.data.msg,
+          type: 'error',
+        });
+      }
     }
     return res;
   },
