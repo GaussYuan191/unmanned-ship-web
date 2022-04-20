@@ -38,7 +38,7 @@
       >
         <div class="markerImg">返</div>
       </el-amap-marker>
-
+<!-- :position="[marker.location.longitude, marker.location.latitude]" -->
       <!-- 所有实时无人船 -->
       <div v-if="shipDataList">
         <el-amap-marker
@@ -50,10 +50,10 @@
           :id="index"
         >
           <div class="all-ship-box">
-            <div>船名:{{ shipNameList[index] }}</div>
-            <div>状态:{{ marker.state }}</div>
+            <div>船名:{{ marker.name }}</div>
+            <div>状态:{{ marker.status }}</div>
             <!-- 状态离线不显示速度 -->
-            <div class="speed" v-if="marker.state != '离线'">航行速度:{{ marker.velocity.toFixed(2) }}m/s</div>
+            <div class="speed" v-if="marker.status != '0'">航行速度:{{ marker.speed }}m/s</div>
           </div>
           <div class="all-ship-view-marker" @click="toShipinfo(marker)" ref="allShipMarker">
             <img src="@/assets/img/ship-view/ship.png" alt />
@@ -1320,13 +1320,17 @@ export default {
   destroyed() {
     this.completedCallbacks = [];
   },
-  mounted() {},
+  mounted() {
+    
+  },
   watch: {
     shipDataList(newValue, oldValue) {
-      for (const i of this.shipDataList) {
-        i.location = trun(i.location);
-      }
-      console.log(this.shipDataList);
+      // for (const i of this.shipDataList) {
+      //   i.location = trun(i.location);
+      //   console.log(i)
+      // }
+      console.log("this.shipDataList",this.shipDataList)
+
       // 在开启轨迹的时候,绘制所有船只轨迹
       if (this.isOpenTrack) {
         for (const item in this.shipDataList) {
@@ -1340,7 +1344,9 @@ export default {
       this.allShipTransform();
       // 有新的船只添加或者第一次进入页面时候,自适应一下地图
       if (newValue.length != oldValue.length || this.isChangeCenter) {
+        
         this.center = [this.shipDataList[0].location.longitude, this.shipDataList[0].location.latitude];
+        console.log('中心点',this.center)
         bus.$emit('isShowIndex', {
           val: false,
         });

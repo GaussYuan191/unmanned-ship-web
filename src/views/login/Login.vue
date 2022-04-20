@@ -35,7 +35,7 @@ import { throttle } from '@/utils/common';
 import bus from '@/components/common/bus';
 // 断开事件流的函数
 import { logout } from '@/utils/shioSignalR';
-
+let Base64 = require('js-base64').Base64;
 export default {
   data: function () {
     let a = {
@@ -80,20 +80,18 @@ export default {
             let { data } = res;
             let objToken = jwt_decode(data.token);
             let arrayToken = [];
-
             for (let i in objToken) {
               arrayToken.push(objToken[i]);
             }
             console.log('objToken', objToken);
             console.log('arrayToken', arrayToken);
             this.$message.success('登录成功!');
-            // 更新token
-            window.localStorage.setItem('token', data.token);
+            // 更新token  token 使用base64 编码
+            window.localStorage.setItem('token', Base64.encode(data.token + ':'));
             // 将token的过期时间设置到localStorage中,以此来完成刷新token的功能
             window.localStorage.setItem('tokenTime', arrayToken[3]);
             window.localStorage.setItem('username', res.data.userInfo.username);
             window.localStorage.setItem('role', arrayToken[4]);
-            window.localStorage.setItem('organizationId', arrayToken[0]);
             this.$router.push('/index');
           }
         } else {

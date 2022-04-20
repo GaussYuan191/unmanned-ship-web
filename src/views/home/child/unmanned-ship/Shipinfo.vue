@@ -48,17 +48,8 @@
                 <i class="el-icon-arrow-down el-icon--right"></i>
               </el-button>
               <el-dropdown-menu slot="dropdown">
-                <el-dropdown-item command="info">修改信息</el-dropdown-item>
-                <el-dropdown-item command="config">修改配置</el-dropdown-item>
-                <el-dropdown-item command="reset">恢复出厂设置</el-dropdown-item>
-                <el-dropdown-item command="returnHome">设置返航点</el-dropdown-item>
+                <el-dropdown-item command="info">修改信息</el-dropdown-item>                  
                 <el-dropdown-item v-if="!scope.row.isExecutingPlan" command="action">执行计划</el-dropdown-item>
-                <!-- <el-dropdown-item v-else>船只正在执行计划</el-dropdown-item> -->
-                <!-- <el-dropdown-item v-if="!scope.row.isExecutingPlan" command="action">执行计划</el-dropdown-item>-->
-                <!-- <el-dropdown-item  command="viewPlan">查看执行中的计划</el-dropdown-item>
-                <el-dropdown-item  command="viewPlan2">查看执行中的计划222</el-dropdown-item> -->
-
-                <el-dropdown-item command="viewStatusInfo">查看状态信息</el-dropdown-item>
                 <el-dropdown-item v-if="viewRunStatusFrom.state != '离线'" command="viewRunStatus">船只运行状态</el-dropdown-item>
                 <el-dropdown-item command="onlineVideo">查看实时视频</el-dropdown-item>
               </el-dropdown-menu>
@@ -81,9 +72,6 @@
     <!-- 添加无人船dialog -->
     <el-dialog title="添加无人船" :visible.sync="addlogVisible" width="30%" center @close="closeAdd">
       <el-form ref="addFormRef" label-width="110px" :rules="addRules" :model="addFrom">
-        <el-form-item label="序列号" prop="serialNumber">
-          <el-input v-model="addFrom.serialNumber" placeholder="请输入无人船序列号"></el-input>
-        </el-form-item>
         <el-form-item label="名称" prop="displayName">
           <el-input v-model="addFrom.displayName" placeholder="请输入无人船名称"></el-input>
         </el-form-item>
@@ -95,14 +83,6 @@
         </el-form-item>
         <el-form-item label="最低电压(V)" prop="minimumBatteryVoltage">
           <el-input v-model="addFrom.minimumBatteryVoltage" placeholder="请输入最低电压(V)"></el-input>
-        </el-form-item>
-        <el-form-item label="最高电压(V)" prop="maximumBatteryVoltage">
-          <el-input v-model="addFrom.maximumBatteryVoltage" placeholder="请输入最高电压(V)"></el-input>
-        </el-form-item>
-        <el-form-item label="所属机构" prop="organizationId">
-          <el-select placeholder="请选择" v-model="addFrom.organizationId" clearable>
-            <el-option v-for="item in organInfoList" :key="item.id" :label="item.name" :value="item.id"></el-option>
-          </el-select>
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">

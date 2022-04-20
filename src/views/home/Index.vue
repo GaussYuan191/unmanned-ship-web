@@ -40,7 +40,7 @@ import * as signalr from '@/utils/shioSignalR';
 import bus from '@/components/common/bus';
 import enums from '@/utils/enums';
 import { trun } from '@/utils/common';
-
+import {sleep} from '@/utils/sleep';
 export default {
   name: 'Index',
   //数据
@@ -59,7 +59,7 @@ export default {
       },
       // =================loading==================
       getloading: false,
-      indexLoading: true,
+      indexLoading: false,
       // =================数据====================
       shipInfoList: [],
       shipDataList: [],
@@ -81,6 +81,7 @@ export default {
       clearTrackBtn: false,
       // 通过监听来判断事件流是否断开连接
       DisconnectMessage: '',
+      timer: null
     };
   },
   //组件传值
@@ -92,25 +93,29 @@ export default {
       let query = this.shipQuery.condition.keyword;
       let page = this.shipQuery.page;
       let size = this.shipQuery.size;
-      const { data: res } = await this.$http.post(`/v1/ship/getShipList`, { reqPageNum: page, reqPageSize: size });
+      const { data: res } = await this.$http.post(`/v1/ship/getData`, { reqPageNum: page, reqPageSize: size ,sid: 1});
       if (!res.error_code) {
-        this.shipInfoList = res.data.planList;
-        this.total = res.data.total; // 将shipInfoList得state转换成对应得无人船状态
+        this.shipInfoList = res.data;
+        this.shipDataList.push(res.data);
+        console.log('aaa', this.shipDataList,res.data)
+        this.total = 1; // 将shipInfoList得state转换成对应得无人船状态
         // 获取船只id,传回subscribeAll
         for (const item of this.shipInfoList) {
-          item.runtimeInfo.state = enums.usvState(item.runtimeInfo.state);
-          if (item.runtimeInfo.location) {
-            this.routerTrackLine.push(item.runtimeInfo.location);
-            this.shipNameList.push(item.displayName);
-          }
-          this.usvIdList.push(item.id);
+          // item.runtimeInfo.state = enums.usvState(item.runtimeInfo.state);
+          // if (item.runtimeInfo.location) {
+          //   this.routerTrackLine.push(item.runtimeInfo.location);
+          //   this.shipNameList.push(item.displayName);
+          // }
+          this.usvIdList.push(item.sid);
         }
+
         this.getloading = false;
       }
       // 需要传回给事件流的arr
-      this.eventsList = this.usvIdList.map(id => {
-        return { eventName: 'usvRuntimeInfoChanged', shipId: id, callback: this.signalrCallback };
-      });
+      // this.eventsList = this.usvIdList.map(id => {
+      //   return { eventName: 'usvRuntimeInfoChanged', shipId: id, callback: this.signalrCallback };
+      // });
+    
     },
     // 查看状态信息的事件流函数
     showShipStatusInfo() {
@@ -128,32 +133,32 @@ export default {
     // 获取所有事件流的回调函数
     signalrCallback(data) {
       // 如果没有船只数据直接显示地图
-      !data ? (this.indexLoading = false) : '';
-      if (data.length) {
-        console.log('进入了if');
-        this.shipDataList = data;
-        // 状态转换
-        for (let i in this.shipDataList) {
-          this.$set(this.shipDataList[i], 'state', enums.usvState(this.shipDataList[i].state));
-          i.location = trun(i.location);
-        }
-        console.log(this.shipDataList);
-      } else {
-        this.viewRunStatusFrom = data;
-        // 状态转换
-        // this.viewRunStatusFrom.state = enums.usvState(data.state);
-        this.$set(this.viewRunStatusFrom, 'state', enums.usvState(data.state));
-        this.$set(this.shipDataList, 0, this.viewRunStatusFrom);
-        // if (this.shipDataList.length == 0) {
-        //   this.shipDataList.push(this.viewRunStatusFrom)
-        // }
-        // else if (data.id == this.shipDataList[this.shipDataList.length - 1].id) {
-        //   this.$set(this.shipDataList, this.shipDataList.length - 1, this.viewRunStatusFrom)
-        // }
-        // else {
-        //   this.shipDataList.push(this.viewRunStatusFrom)
-        // }
-      }
+      // !data ? (this.indexLoading = false) : '';
+      // if (data.length) {
+      //   console.log('进入了if');
+      //   this.shipDataList = data;
+      //   // 状态转换
+      //   for (let i in this.shipDataList) {
+      //     this.$set(this.shipDataList[i], 'state', enums.usvState(this.shipDataList[i].state));
+      //     i.location = trun(i.location);
+      //   }
+      //   console.log(this.shipDataList);
+      // } else {
+      //   this.viewRunStatusFrom = data;
+      //   // 状态转换
+      //   // this.viewRunStatusFrom.state = enums.usvState(data.state);
+      //   this.$set(this.viewRunStatusFrom, 'state', enums.usvState(data.state));
+      //   this.$set(this.shipDataList, 0, this.viewRunStatusFrom);
+      //   // if (this.shipDataList.length == 0) {
+      //   //   this.shipDataList.push(this.viewRunStatusFrom)
+      //   // }
+      //   // else if (data.id == this.shipDataList[this.shipDataList.length - 1].id) {
+      //   //   this.$set(this.shipDataList, this.shipDataList.length - 1, this.viewRunStatusFrom)
+      //   // }
+      //   // else {
+      //   //   this.shipDataList.push(this.viewRunStatusFrom)
+      //   // }
+      // }
     },
     // 开机轨迹
     openTrack() {
@@ -183,22 +188,23 @@ export default {
   beforeCreate() {},
   //创建完成
   created() {
-    this.getShipData();
+    this.getShipData()
+    // this.timer = setInterval(this.getShipData, 2000);
   },
   //挂载前
   beforeMount() {},
   //挂载完成
   mounted() {
     // 每次点击自适应地图标点
-    this.$refs.Indexamap.onCompleted(x => this.$refs.Indexamap.setView(this.viewRunStatusFrom));
-    // 地图中心点变换
-    bus.$on('isShowIndex', ({ val }) => {
-      this.indexLoading = val;
-    });
-    // 事件流断开
-    bus.$on('Disconnect', ({ message }) => {
-      this.DisconnectMessage = message;
-    });
+    // this.$refs.Indexamap.onCompleted(x => this.$refs.Indexamap.setView(this.viewRunStatusFrom));
+    // // 地图中心点变换
+    // bus.$on('isShowIndex', ({ val }) => {
+    //   this.indexLoading = val;
+    // });
+    // // 事件流断开
+    // bus.$on('Disconnect', ({ message }) => {
+    //   this.DisconnectMessage = message;
+    // });
   },
   //更新前
   beforeUpdate() {},
@@ -207,30 +213,33 @@ export default {
   //销毁前
   beforeDestroy() {
     // 离开前传回编码关闭事件流,要将他以数组传回去
-    signalr.unsubscribe(this.usvRuntimeInfoChangedId);
+    // signalr.unsubscribe(this.usvRuntimeInfoChangedId);
     console.log(this.usvRuntimeInfoChangedId);
     signalr.unconnected(this.wsConnectedCbHandle);
     this.option ? this.option.close() : '';
+
   },
   //销毁完成
-  destoryed() {},
+  destoryed() {
+    clearInterval(this.timer)
+  },
   //监听
   watch: {
-    eventsList() {
-      this.wsConnectedCbHandle = signalr.connected(this.showShipStatusInfo);
-    },
-    // DisconnectMessage变化了证明事件流连接发生了变化
-    DisconnectMessage() {
-      if (this.DisconnectMessage) {
-        this.option = this.$message({
-          type: 'error',
-          message: this.DisconnectMessage,
-          duration: 0,
-        });
-      } else {
-        this.option ? this.option.close() : '';
-      }
-    },
+    // eventsList() {
+    //   this.wsConnectedCbHandle = signalr.connected(this.showShipStatusInfo);
+    // },
+    // // DisconnectMessage变化了证明事件流连接发生了变化
+    // DisconnectMessage() {
+    //   if (this.DisconnectMessage) {
+    //     this.option = this.$message({
+    //       type: 'error',
+    //       message: this.DisconnectMessage,
+    //       duration: 0,
+    //     });
+    //   } else {
+    //     this.option ? this.option.close() : '';
+    //   }
+    // },
   },
 };
 </script>

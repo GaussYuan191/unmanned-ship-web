@@ -15,6 +15,8 @@ import './assets/icon/icon.css';
 
 import './components/common/directives';
 import 'babel-polyfill';
+// 导入base64库
+import Base64 from 'js-base64'
 
 import axios from 'axios';
 import store from './store/store';
@@ -52,7 +54,6 @@ Vue.prototype.$bus = new Vue();
 // 导入使用 echarts
 import echarts from 'echarts';
 Vue.prototype.$echarts = echarts;
-
 Vue.prototype.$http = axios;
 // axios.defaults.baseURL = 'https://yuangauss287.top:8080/';
 axios.defaults.baseURL = 'http://127.0.0.1:8080';
@@ -64,7 +65,7 @@ axios.interceptors.request.use(
     NProgress.start();
     //如果Authorization中没有token就给他token,否者不能登录系统
     if (!config.headers.Authorization) {
-      config.headers.Authorization = `Bearer ${window.localStorage.getItem('token')}`;
+      config.headers.Authorization = `Basic ${window.localStorage.getItem('token')}`;
     }
     //发送的是登录请求和更新token请求,那么不能发起请求否者会进入回调地狱死循环.
     if (config.url == '/auth/refreshtoken' || config.url == '/auth/signin') {
@@ -116,9 +117,9 @@ axios.interceptors.response.use(
       // this.$message.error(err.response.data.message)
       // 使用官方原生方法才有效
       console.log(err);
-      if (err.response.data.message) {
+      if (err.response.data.msg) {
         ElementUI.Message({
-          message: err.response.data.message,
+          message: err.response.data.msg,
           type: 'error',
         });
       } else {
