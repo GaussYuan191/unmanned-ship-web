@@ -68,15 +68,8 @@ export default {
           let req = { account: this.param.userName, secret: this.param.password, type: '101' };
           const { data: res } = await this.$http.post('/v1/login', req);
           console.log('发送了请求');
-          if (res.error_code != 0) {
-            console.log('请求失败', res);
-            this.$message({
-              duration: '1500',
-              message: `${res.message}`,
-              type: 'error',
-            });
-          } else {
-            console.log('请求成功', res);
+          if (res.error_code == 0) {
+             console.log('请求成功', res);
             let { data } = res;
             let objToken = jwt_decode(data.token);
             let arrayToken = [];
@@ -93,7 +86,7 @@ export default {
             window.localStorage.setItem('username', res.data.userInfo.username);
             window.localStorage.setItem('role', arrayToken[4]);
             this.$router.push('/index');
-          }
+          } 
         } else {
           this.$message.info('请输入用户名和密码');
         }

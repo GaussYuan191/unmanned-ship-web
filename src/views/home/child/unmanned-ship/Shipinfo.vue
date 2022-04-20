@@ -21,21 +21,21 @@
       </el-row>
       <!-- 表格 -->
       <el-table :data="shipInfoList" border stripe v-loading="getloading">
-        <el-table-column type="index" label="#"></el-table-column>
+        <el-table-column type="index" label="序号"></el-table-column>
         <el-table-column label="无人船名称" prop="name"></el-table-column>
         <el-table-column label="序列号" prop="sid"></el-table-column>
         <el-table-column label="摄像机序列号" prop="Cameras[0].cid"></el-table-column>
         <el-table-column label="摄像机状态" prop="Cameras[0].cstatus">
           <template slot-scope="scope">
-            <el-tag v-if="scope.row.status == 0" type="danger">异常</el-tag>
-            <el-tag v-if="scope.row.status == 1">正常</el-tag>
+            <el-tag v-if="scope.row.cstatus == 0" type="danger">异常</el-tag>
+            <el-tag v-if="scope.row.cstatus == 1">正常</el-tag>
           </template>
         </el-table-column>
-
         <el-table-column label="无人船状态" prop="status">
           <template slot-scope="scope">
             <el-tag v-if="scope.row.status == 0" type="danger">异常</el-tag>
             <el-tag v-if="scope.row.status == 1">正常</el-tag>
+            <el-tag v-if="scope.row.status == 2" type="info">离线</el-tag>
           </template>
         </el-table-column>
 
@@ -72,17 +72,11 @@
     <!-- 添加无人船dialog -->
     <el-dialog title="添加无人船" :visible.sync="addlogVisible" width="30%" center @close="closeAdd">
       <el-form ref="addFormRef" label-width="110px" :rules="addRules" :model="addFrom">
-        <el-form-item label="名称" prop="displayName">
-          <el-input v-model="addFrom.displayName" placeholder="请输入无人船名称"></el-input>
+        <el-form-item label="名称" prop="name">
+          <el-input v-model="addFrom.name" placeholder="请输入无人船名称"></el-input>
         </el-form-item>
-        <el-form-item label="摄像机序列号" prop="cameraSN">
-          <el-input v-model="addFrom.cameraSN" placeholder="请输入摄像机序列号"></el-input>
-        </el-form-item>
-        <el-form-item label="摄像机验证码" prop="cameraValidationCode">
-          <el-input v-model="addFrom.cameraValidationCode" placeholder="请输入摄像机验证码"></el-input>
-        </el-form-item>
-        <el-form-item label="最低电压(V)" prop="minimumBatteryVoltage">
-          <el-input v-model="addFrom.minimumBatteryVoltage" placeholder="请输入最低电压(V)"></el-input>
+        <el-form-item label="摄像机序列号" prop="cid">
+          <el-input v-model="addFrom.cid" placeholder="请输入摄像机序列号"></el-input>
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
@@ -93,25 +87,8 @@
     <!-- 编辑无人船dialog -->
     <el-dialog title="编辑无人船" :visible.sync="editlogVisible" width="30%" center @close="closeEdit">
       <el-form ref="editFormRef" label-width="110px" :rules="editRules" :model="editFrom">
-        <el-form-item label="名称" prop="displayName">
-          <el-input v-model="editFrom.displayName"></el-input>
-        </el-form-item>
-        <el-form-item label="摄像机序列号" prop="cameraSN">
-          <el-input v-model="editFrom.cameraSN"></el-input>
-        </el-form-item>
-        <el-form-item label="摄像机验证码" prop="cameraValidationCode">
-          <el-input v-model="editFrom.cameraValidationCode"></el-input>
-        </el-form-item>
-        <el-form-item label="最低电压(V)" prop="minimumBatteryVoltage">
-          <el-input v-model="editFrom.minimumBatteryVoltage" placeholder="请输入最低电压(V)"></el-input>
-        </el-form-item>
-        <el-form-item label="最高电压(V)" prop="maximumBatteryVoltage">
-          <el-input v-model="editFrom.maximumBatteryVoltage" placeholder="请输入最高电压(V)"></el-input>
-        </el-form-item>
-        <el-form-item label="所属机构" required prop="organizationId">
-          <el-select placeholder="请选择" v-model="editFrom.organizationId" clearable>
-            <el-option v-for="item in organInfoList" :key="item.id" :label="item.name" :value="item.id"></el-option>
-          </el-select>
+        <el-form-item label="名称" prop="name">
+          <el-input v-model="editFrom.name"></el-input>
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
@@ -399,13 +376,13 @@ export default {
       total: 0,
       // 新增数据表单数据
       addFrom: {
-        serialNumber: '',
-        displayName: '',
-        cameraSN: '',
-        organizationId: null,
+        name: '',
+        cid: '',
       },
       // 修改数据表单数据
-      editFrom: {},
+      editFrom: {
+        name: ''
+      },
       // 执行计划数据
       actiomFrom: {
         planId: null,
@@ -697,7 +674,7 @@ export default {
             this.addLoading = loading;
           });
           console.log(this.addLoading);
-          const { data: res } = await this.$http.post('/usv/add', this.addFrom);
+          const { data: res } = await this.$http.post('/v1/ship/add', this.addFrom);
           if (!res.error_code) {
             this.getShipData();
             this.$message.success('添加无人船成功');
@@ -708,7 +685,7 @@ export default {
     },
     // 确定编辑无人船
     editShip() {
-      this.$refs.editFormRef.validate(async (val) => {
+      this.$refs.editFormRef.validate(async (val, data) => {
         if (val) {
           this.editinfoLoading = true;
           // 通过事件总线来获取axios响应拦截器中得loading数据,来控制本页面得loading值,
@@ -716,7 +693,8 @@ export default {
           bus.$on('loading', ({ loading }) => {
             this.editinfoLoading = loading;
           });
-          const { data: res } = await this.$http.post('/usv/update', this.editFrom);
+          console.log("点击的无人船信息", val, this.shipId)
+          const { data: res } = await this.$http.post('/v1/ship/update', {...this.editFrom, sid: this.shipId});
           if (!res.error_code) {
             this.$message.success('更新数据成功');
             this.editlogVisible = false;
@@ -754,7 +732,8 @@ export default {
     // 下拉框显示回调事件
     getShipInfoById(scope) {
       this.dropdownScope = scope;
-      this.shipId = scope.row.id;
+      this.shipId = scope.row.sid;
+      this.videoTokenData.url = scope.row.Cameras[0].url;
     },
     //下拉框选择事件
     handleCommand(command) {
