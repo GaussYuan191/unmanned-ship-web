@@ -534,7 +534,7 @@ export default {
     return {
       ischflage: true,
       amapManager,
-      center: [106.587556, 29.567932],
+      center: [113.032091, 28.236334],
       zoom: 11,
       zooms: [2, 20],
       // 地图四个角经纬度

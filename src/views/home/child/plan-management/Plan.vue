@@ -39,9 +39,10 @@
               </el-col>
             </el-row>
             <!-- 表格 -->
-            <el-table :data="planList" border @cell-click="changeTable" v-loading="loading" highlight-current-row ref="planistTable">
+            <el-table :data="planList" border @cell-click="changeTable"  highlight-current-row ref="planistTable">
               <el-table-column label="#" type="index" width="35px"></el-table-column>
-              <el-table-column label="计划名称" prop="name"></el-table-column>
+              <el-table-column label="计划名称" prop="pname"></el-table-column>
+              <el-table-column label="详情" prop="operation"></el-table-column>
               <el-table-column label="操作" width="63px">
                 <template slot-scope="scope">
                   <!-- 修改 -->
@@ -131,7 +132,7 @@
         <el-form ref="actiomFormRef" label-width="110px" :rules="actiomRules" :model="actiomFrom">
           <el-form-item label="执行计划船只" prop="usvId">
             <el-select placeholder="请选择" v-model="actiomFrom.usvId" clearable>
-              <el-option v-for="item in shipInfoList" :key="item.id" :label="item.displayName" :value="item.id"></el-option>
+              <el-option v-for="item in shipInfoList" :key="item.sid" :label="item.name" :value="item.sid"></el-option>
             </el-select>
           </el-form-item>
           <el-form-item>
@@ -156,7 +157,7 @@
         <el-form ref="routeTrackFormRef" label-width="110px" :rules="routeTrackRules" :model="routeTrackFrom">
           <el-form-item label="绘制轨迹船只" prop="usvId">
             <el-select placeholder="请选择" v-model="routeTrackFrom.usvId" clearable>
-              <el-option v-for="item in shipInfoList" :key="item.id" :label="item.displayName" :value="item.id"></el-option>
+              <el-option v-for="item in shipInfoList" :key="item.sid" :label="item.name" :value="item.sid"></el-option>
             </el-select>
           </el-form-item>
         </el-form>
@@ -199,7 +200,7 @@ export default {
     return {
       enums: enums,
       ismarker: false,
-      loading: true,
+      loading: false,
       visible: false,
       isClick: false,
       // 区域搜索框
@@ -356,13 +357,13 @@ export default {
       let query = this.planQuery.condition.keyword;
       let page = this.planQuery.page;
       let size = this.planQuery.size;
-      const { data: res } = await this.$http.post(
-        `/v1/plan/getPlanList`, { reqPageNum: page, reqPageSize: size }
-      );
-      if (!res.errorCode) {
+      console.log("kiasihi")
+      const { data: res } = await this.$http.post(`/v1/plan/getPlanList`, { reqPageNum: page, reqPageSize: size , sid: 1});
+      console.log('3632',res);
+      if (!res.error_code) {
         // 数据库获取并且赋值给 planList===============
-        this.planList = res.data.result;
-        console.log(this.planList);
+        this.planList = res.data.planList;
+        console.log('sss', this.planList, res);
         this.planQuery.total = res.data.total;
         for (let val of this.planList) {
           for (let vals of val.fixes) {
@@ -394,12 +395,10 @@ export default {
       let query = this.shipQuery.condition.keyword;
       let page = this.shipQuery.page;
       let size = this.shipQuery.size;
-      const { data: res } = await this.$http.get(
-        `/usv/search?Condition.Keyword=${query}&Page=${page}&Size=${size}`
-      );
-      if (!res.errorCode) {
+      const { data: res } = await this.$http.post(`/v1/ship/getShipList`, { reqPageNum: page, reqPageSize: size });
+      if (!res.error_code) {
         // console.log(res); 解决
-        this.shipInfoList = res.data.result;
+        this.shipInfoList = res.data.shipInfoList;
         this.total = res.data.total;
         this.loading = false;
       }
@@ -470,7 +469,7 @@ export default {
     // 选择正在执行计划的船只
     async changeActionPlanShip(row) {
       const { data: res } = await this.$http.get(`/plan/getexecutioncontext?usvId=${row.id}`);
-      if (!res.errorCode) {
+      if (!res.error_code) {
         console.log(res);
         this.setMeasurement = res.data;
         this.$message.success('获取成功');
@@ -491,7 +490,7 @@ export default {
             this.isaddlogVisible = loading;
           });
           const { data: res } = await this.$http.post(`/plan/add`, this.addFrom);
-          if (!res.errorCode) {
+          if (!res.error_code) {
             console.log(res);
             this.addlogVisible = false;
             this.getPlanData();
@@ -516,7 +515,7 @@ export default {
       // 获得需要高亮显示的函数
       // this.currentRowIndex = scope.$index;
       const { data: res } = await this.$http.get(`/plan/get?id=${scope.row.id}`);
-      if (!res.errorCode) {
+      if (!res.error_code) {
         console.log(res);
         this.editFrom = res.data;
       }
@@ -533,7 +532,7 @@ export default {
             this.iseditlogVisible = loading;
           });
           const { data: res } = await this.$http.post(`/plan/modify`, this.editFrom);
-          if (!res.errorCode) {
+          if (!res.error_code) {
             console.log(res);
             this.getPlanData(this.currentRowIndex);
             setTimeout(() => {
@@ -553,24 +552,24 @@ export default {
       this.actiomFrom.planId = this.objectLnglat.telemetryPlanId;
       this.$refs.actiomFormRef.validate(async val => {
         if (val) {
-          this.viewOnlineVideo(this.actiomFrom.usvId);
+          // this.viewOnlineVideo(this.actiomFrom.usvId);
           this.actionPlanLoad = true;
           // 通过事件总线来获取axios响应拦截器中得loading数据,来控制本页面得loading值,
           // 如果直接使用this.loading,那么请求非200的时候按钮得disable会一直存在,为了防止请求非200导致解构赋值报错最好写在解构赋值前面
           bus.$on('loading', ({ loading }) => {
             this.actionPlanLoad = loading;
           });
-          const { data: res } = await this.$http.post(`/plan/execute`, this.actiomFrom);
-          if (!res.errorCode) {
+          const { data: res } = await this.$http.post(`v1/plan/do`, {id:this.actiomFrom.usvId});
+          if (!res.error_code) {
             console.log(res);
             // 获取船id和计划id进行查询
-            this.$router.push({
-              path: 'actionplan',
-              query: {
-                usvId: this.actiomFrom.usvId,
-              },
-            });
-            this.actionPlanDialogTableVisible = false;
+            // this.$router.push({
+            //   path: 'actionplan',
+            //   query: {
+            //     usvId: this.actiomFrom.usvId,
+            //   },
+            // });
+            // this.actionPlanDialogTableVisible = false;
             this.$message.success('执行计划成功');
             setTimeout(() => {
               this.actionPlanLoad = false;
@@ -603,7 +602,7 @@ export default {
       }
       const { data: res } = await this.$http.post(`/plan/updatefixes`, objectLnglat);
 
-      if (!res.errorCode) {
+      if (!res.error_code) {
         // console.log(res); 解决
         this.getPlanData(this.currentRowIndex);
         this.isClick = false;
@@ -621,7 +620,7 @@ export default {
       }).catch(err => err);
       if (confirmRlust == 'confirm') {
         const { data: res } = await this.$http.post(`/plan/delete?id=${scope.row.id}`);
-        if (!res.errorCode) {
+        if (!res.error_code) {
           // console.log(res); 解决
           this.$message.success('删除计划成功');
           this.pointList = [];
@@ -683,7 +682,7 @@ export default {
         const { data: res } = await this.$http.get(
           `geography/convert?coord=${this.lnglat.value}&srid=${this.LatiLongConversion.sridWgs84}`
         );
-        if (!res.errorCode) {
+        if (!res.error_code) {
           // console.log(res); //解决
           let location = trun(res.data);
           this.LatiLongConversion.setLatiLong = location.latitude + ',' + location.longitude;
@@ -711,7 +710,7 @@ export default {
       this.actiomFrom.planId = this.objectLnglat.telemetryPlanId;
       // 优先监测船只是否处于离线状态，否则执行后面数据获取
       const { data: res } = await this.$http.get(`usv/get?id=${this.routeTrackFrom.usvId}`);
-      if (!res.errorCode) {
+      if (!res.error_code) {
         console.log(res); //解决
         if (res.data.runtimeInfo.state != 0) {
         
@@ -811,7 +810,7 @@ export default {
     //查看实时视频
     async viewOnlineVideo(id) {
       const { data: res } = await this.$http.get(`/camera/live?usvId=${id}`);
-      if (!res.errorCode) {
+      if (!res.error_code) {
         this.iframeUrl = res.data;
         // 执行获取token的函数
         this.getOnlineVideoToken();
@@ -856,7 +855,9 @@ export default {
     window.clearInterval(this.TokenUpdateTime);
   },
 
-  computed: {},
+  computed: {
+    
+  },
   beforeMount() {},
   mounted() {
     bus.$on('Disconnect', ({ message }) => {
