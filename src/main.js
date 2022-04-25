@@ -51,6 +51,9 @@ import { updateToken } from '../src/utils/request';
 // 定义事件总线
 Vue.prototype.$bus = new Vue();
 
+// 全局注册websocket
+import websocket from './utils/websocket'
+Vue.prototype.$websocket = websocket
 // 导入使用 echarts
 import echarts from 'echarts';
 Vue.prototype.$echarts = echarts;

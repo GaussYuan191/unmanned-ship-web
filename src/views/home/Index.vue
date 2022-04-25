@@ -94,6 +94,7 @@ export default {
       let page = this.shipQuery.page;
       let size = this.shipQuery.size;
       const { data: res } = await this.$http.post(`/v1/ship/getData`, { reqPageNum: page, reqPageSize: size ,sid: 1});
+      this.$websocket.initWebSocket(1)
       if (!res.error_code) {
         this.shipInfoList = res.data;
         this.shipDataList.push(res.data);
