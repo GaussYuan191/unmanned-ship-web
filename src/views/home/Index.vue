@@ -12,15 +12,9 @@
               :clearTrackBtn="clearTrackBtn"
               ref="Indexamap"
             ></Amap>
-            <el-button v-if="isShowTrackBtn" @click="openTrack" class="track-btn" type="primary"
-              >开启轨迹</el-button
-            >
-            <el-button v-else @click="closeTrack" class="track-btn" type="primary"
-              >关闭轨迹</el-button
-            >
-            <el-button v-if="!isShowTrackBtn" @click="clearTrack" class="clear-btn" type="primary"
-              >清除轨迹</el-button
-            >
+            <el-button v-if="isShowTrackBtn" @click="openTrack" class="track-btn" type="primary">开启轨迹</el-button>
+            <el-button v-else @click="closeTrack" class="track-btn" type="primary">关闭轨迹</el-button>
+            <el-button v-if="!isShowTrackBtn" @click="clearTrack" class="clear-btn" type="primary">清除轨迹</el-button>
           </el-col>
         </el-row>
       </el-card>
@@ -40,7 +34,7 @@ import * as signalr from '@/utils/shioSignalR';
 import bus from '@/components/common/bus';
 import enums from '@/utils/enums';
 import { trun } from '@/utils/common';
-import {sleep} from '@/utils/sleep';
+import { sleep } from '@/utils/sleep';
 export default {
   name: 'Index',
   //数据
@@ -81,24 +75,81 @@ export default {
       clearTrackBtn: false,
       // 通过监听来判断事件流是否断开连接
       DisconnectMessage: '',
-      timer: null
+      timer: null,
+      websock: null,
     };
   },
   //组件传值
   props: {},
   //方法
   methods: {
+    initWebSocket() {
+      //初始化weosocket
+      const wsuri = 'ws://127.0.0.1:8080/v1/ws?id=6&type=shipData&sid=1';
+      this.websock = new WebSocket(wsuri);
+      this.websock.onmessage = this.websocketonmessage;
+      this.websock.onopen = this.websocketonopen;
+      this.websock.onerror = this.websocketonerror;
+      this.websock.onclose = this.websocketclose;
+    },
+    websocketonopen() {
+      //连接建立之后执行send方法发送数据
+      let actions = { test: '12345' };
+      this.websocketsend(JSON.stringify(actions));
+    },
+    websocketonerror() {
+      //连接建立失败重连
+      this.initWebSocket();
+    },
+    websocketonmessage(e) {
+      //数据接收
+      const res = JSON.parse(e.data);
+      console.log(res);
+      if (!res.error_code) {
+        let flag = false;
+        this.shipInfoList = res.data;
+        this.shipDataList.push(res.data);
+        // this.shipDataList = this.shipDataList.map(item => {
+        //   if (item.sid == res.data.sid) {
+        //     flag = true;
+        //     return res.data;
+        //   }
+        // });
+        // if (!flag) {
+        //   this.shipDataList.push(res.data);
+        // }
+        console.log('aaa', this.shipDataList, res.data);
+        this.total = 1; // 将shipInfoList得state转换成对应得无人船状态
+        // 获取船只id,传回subscribeAll
+        for (const item of this.shipInfoList) {
+          // item.runtimeInfo.state = enums.usvState(item.runtimeInfo.state);
+          // if (item.runtimeInfo.location) {
+          //   this.routerTrackLine.push(item.runtimeInfo.location);
+            this.shipNameList.push(item.name);
+          // }
+          this.usvIdList.push(item.sid);
+        }
+      }
+    },
+    websocketsend(Data) {
+      //数据发送
+      this.websock.send(Data);
+    },
+    websocketclose(e) {
+      //关闭
+      console.log('断开连接', e);
+    },
     async getShipData() {
       this.getloading = true;
       let query = this.shipQuery.condition.keyword;
       let page = this.shipQuery.page;
       let size = this.shipQuery.size;
-      const { data: res } = await this.$http.post(`/v1/ship/getData`, { reqPageNum: page, reqPageSize: size ,sid: 1});
-      this.$websocket.initWebSocket(1)
+      const { data: res } = await this.$http.post(`/v1/ship/getData`, { reqPageNum: page, reqPageSize: size, sid: 1 });
+      // console.log('bdie', this.$websocket.initWebSocket(1))
       if (!res.error_code) {
         this.shipInfoList = res.data;
         this.shipDataList.push(res.data);
-        console.log('aaa', this.shipDataList,res.data)
+        console.log('aaa', this.shipDataList, res.data);
         this.total = 1; // 将shipInfoList得state转换成对应得无人船状态
         // 获取船只id,传回subscribeAll
         for (const item of this.shipInfoList) {
@@ -116,7 +167,6 @@ export default {
       // this.eventsList = this.usvIdList.map(id => {
       //   return { eventName: 'usvRuntimeInfoChanged', shipId: id, callback: this.signalrCallback };
       // });
-    
     },
     // 查看状态信息的事件流函数
     showShipStatusInfo() {
@@ -189,7 +239,8 @@ export default {
   beforeCreate() {},
   //创建完成
   created() {
-    this.getShipData()
+    // this.getShipData();
+    this.initWebSocket();
     // this.timer = setInterval(this.getShipData, 2000);
   },
   //挂载前
@@ -218,11 +269,10 @@ export default {
     console.log(this.usvRuntimeInfoChangedId);
     signalr.unconnected(this.wsConnectedCbHandle);
     this.option ? this.option.close() : '';
-
   },
   //销毁完成
   destoryed() {
-    clearInterval(this.timer)
+    clearInterval(this.timer);
   },
   //监听
   watch: {

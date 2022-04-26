@@ -12,8 +12,14 @@ export default {
       flvPlayer: null,
     };
   },
+  props: {
+    url: {
+      type: String,
+    },
+  },
   mounted() {
     if (flvjs.isSupported()) {
+      console.log(this.url, 'this.url')
       var videoElement = document.getElementById('videoElement');
       this.flvPlayer = flvjs.createPlayer({
         type: 'flv',

@@ -69,15 +69,15 @@ export const updateToken = async (timer, config) => {
 
 //查看实时视频
 export async function viewOnlineVideo(id, obj) {
+  const { data: res } = await axios.get(`/v1/camera/getVideo?cid=${id}`);
+  if (!res.res.error_code) {
+    obj.url = res.data.url;
+    // 执行获取token的函数
+    getOnlineVideoToken(obj);
+  }
+  // obj.url = 'http://124.222.218.232:8000/live/STREAM_NAME.flv';
   // const { data: res } = await axios.get(`/camera/live?usvId=${id}`);
-  // if (!res.errorCode) {
-  //   obj.url = res.data;
-  //   // 执行获取token的函数
-  //   getOnlineVideoToken(obj);
-  // }
-  obj.url = 'http://124.222.218.232:8000/live/STREAM_NAME.flv';
-  // const { data: res } = await axios.get(`/camera/live?usvId=${id}`);
-  // if (!res.errorCode) {
+  // if (!res.res.error_code) {
     
   //   // 执行获取token的函数
   //   getOnlineVideoToken(obj);
@@ -85,13 +85,13 @@ export async function viewOnlineVideo(id, obj) {
 }
 //获取实时视频token函数
 export async function getOnlineVideoToken(obj) {
-  // const { data: videoRes } = await axios.get(`/camera/accesstoken`);
-  // // 传了对象进入if赋值,直接调用没传对象只返回时间
-  // if (!videoRes.errorCode) {
-  //   // 保存token,和过期时间
-  //   obj.token = videoRes.data.token;
-  //   obj.exp = parseInt(new Date(videoRes.data.expiry).getTime() / 1000);
-  // }
+  const { data: videoRes } = await axios.get(`/camera/accesstoken`);
+  // 传了对象进入if赋值,直接调用没传对象只返回时间
+  if (!videoRes.res.error_code) {
+    // 保存token,和过期时间
+    obj.token = videoRes.data.token;
+    obj.exp = parseInt(new Date(videoRes.data.expiry).getTime() / 1000);
+  }
 }
 
 // 获取航标函数
@@ -122,7 +122,7 @@ export async function getMakerData(makerQuery) {
       Size: makerQuery.size,
     },
   });
-  if (!res.errorCode) {
+  if (!res.res.error_code) {
     makerInfoList = res.data.result;
     // 添加需要使用的经纬度
     for (const i of makerInfoList) {
@@ -159,7 +159,7 @@ export async function getPortData(portrQuery) {
       Size: portrQuery.size,
     },
   });
-  if (!res.errorCode) {
+  if (!res.res.error_code) {
     portrInfoList = res.data.result;
     // 添加需要使用的经纬度
     for (const i of portrInfoList) {

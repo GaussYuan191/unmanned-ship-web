@@ -105,7 +105,7 @@ export default {
   },
   data() {
     return {
-      setActionLoading: true,
+      setActionLoading: false,
       // 计划id
       planId: null,
       // 锚点
@@ -271,7 +271,7 @@ export default {
     async getPlanCoor() {
       if (this.planId) {
         const { data: res } = await this.$http.get(`/plan/get?id=${this.planId}`);
-        if (!res.errorCode) {
+        if (!res.error_code) {
           // 排序获取信息
           res.data.fixes.sort(function(a, b) {
             return a.order - b.order;
@@ -287,10 +287,10 @@ export default {
     // 获取船只名字,获取计划id
     async getUsvName() {
       console.log(`当前船只usvID======》${this.usvId}`);
-      const { data: res } = await this.$http.get(`usv/get?id=${this.usvId}`);
-      if (!res.errorCode) {
+      const { data: res } = await this.$http.post(`/v1/ship/getShipList`);
+      if (!res.error_code) {
         // 船只名字
-        this.usvName = res.data.displayName;
+        this.usvName = res.data.shipInfoList.name;
         // 当前船只是否在执行计划,获取执行计划的id
         if (res.data.isExecutingPlan) {
           if (this.planId != res.data.executingPlanId) {
@@ -308,7 +308,7 @@ export default {
     // 获取计划信息
     async getPlanInfor() {
       const { data: res } = await this.$http.get(`plan/getexecutioncontext?usvId=${this.usvId}`);
-      if (!res.errorCode) {
+      if (!res.error_code) {
         if (res.data.stage == 4) {
           this.$confirm('计划已经执行完毕是否退出页面?', '提示', {
             confirmButtonText: '确定',
@@ -435,7 +435,7 @@ export default {
     // 停止任务==函数
     async stopPlanFun() {
       const { data: res } = await this.$http.post(`plan/cancel?usvId=${this.usvId}`);
-      if (!res.errorCode) {
+      if (!res.error_code) {
         let deletePath = this.$router.history.current.fullPath;
         console.log(deletePath); // /actionplan
         // bus.$emit('setDestroy',{index,full,tagsList})
@@ -450,7 +450,7 @@ export default {
     // 暂停任务
     async SuspendedTask() {
       // const { data: res } = await this.$http.post(`/usv/pause?id=${this.setmanned.id}`);
-      // if (!res.errorCode) {
+      // if (!res.error_code) {
       //   console.log(res);
       //   this.shipStop = false;
       // } else {
@@ -460,7 +460,7 @@ export default {
     // 恢复任务
     async restoreTask() {
       // const { data: res } = await this.$http.post(`/usv/resume?id=${this.setmanned.id}`);
-      // if (!res.errorCode) {
+      // if (!res.error_code) {
       //   console.log(res);
       //   this.shipStop = true;
       // } else {
@@ -470,7 +470,7 @@ export default {
     // 立即返航
     async immediatelyReturn() {
       // const { data: res } = await this.$http.post(`/usv/return?id=${this.setmanned.id}`);
-      // if (!res.errorCode) {
+      // if (!res.error_code) {
       //   console.log(res);
       // } else {
       //   this.$message.error('当前未有接口' + this.setmanned.id);
@@ -479,7 +479,7 @@ export default {
     // 无人船软复位
     async softReset() {
       // const { data: res } = await this.$http.post(`/usv/reset?id=${this.setmanned.id}`);
-      // if (!res.errorCode) {
+      // if (!res.error_code) {
       //   console.log(res);
       // } else {
       //   this.$message.error('当前未有接口' + this.setmanned.id);
@@ -552,7 +552,7 @@ export default {
             `/geography/reduce?tolerance=${this.tolerance}&algorithmSource=application`,
             SimLineTrun
           );
-          if (!res.errorCode) {
+          if (!res.error_code) {
             console.log(res);
             let trunSimLineOld = JSON.parse(JSON.stringify(res.data.geom))
             let trunSimLine = [];
@@ -644,7 +644,7 @@ export default {
     }
   },
   created() {
-    viewOnlineVideo(this.usvId, this.videoTokenData);
+    viewOnlineVideo(1, this.videoTokenData);
   },
   mounted() {
     //获取坐标信息后再执行地图自适应，此时数据才能获取到信息

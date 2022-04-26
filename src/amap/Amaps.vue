@@ -38,7 +38,7 @@
       >
         <div class="markerImg">返</div>
       </el-amap-marker>
-<!-- :position="[marker.location.longitude, marker.location.latitude]" -->
+      <!-- :position="[marker.location.longitude, marker.location.latitude]" -->
       <!-- 所有实时无人船 -->
       <div v-if="shipDataList">
         <el-amap-marker
@@ -51,7 +51,7 @@
         >
           <div class="all-ship-box">
             <div>船名:{{ marker.name }}</div>
-            <div>状态:{{ marker.status }}</div>
+            <div>状态:{{ marker.status == 1 ? '正常' : marker.status == 2 ? '离线' : '异常' }}</div>
             <!-- 状态离线不显示速度 -->
             <div class="speed" v-if="marker.status != '0'">航行速度:{{ marker.speed }}m/s</div>
           </div>
@@ -621,7 +621,7 @@ export default {
           });
         },
         // 点击地图获取点击经纬度
-        click: (e) => {
+        click: e => {
           if (this.isClick) {
             console.log('左键点击了地图');
             // 获取经纬度
@@ -642,7 +642,7 @@ export default {
       // ===========地图点标记方法==========
       markerEvents: {
         // 鼠标拖动修改对应的经纬度
-        dragging: (e) => {
+        dragging: e => {
           if (this.pointDataList && this.pointDataList.length != 0) {
             // 只获取点击的数字内容，作为下标
             this.pointDataList.splice(parseInt(e.target.Ce.contentDom.querySelector('.markerImg').innerHTML) - 1, 1, {
@@ -656,7 +656,7 @@ export default {
         },
 
         // 点击可以查看经纬度
-        click: (e) => {
+        click: e => {
           // 获取经纬度,用来显示
           const lnglat = this.getLngLat(e);
           this.$emit('ViewLocation', lnglat);
@@ -665,7 +665,7 @@ export default {
       // =============返航点拖拽==============
       retrunHomeMakerEvents: {
         // 鼠标拖动修改对应的经纬度
-        dragging: (e) => {
+        dragging: e => {
           console.log(e);
           // 只获取点击的数字内容，作为下标
           this.returnHomeData.splice(0, 1, {
@@ -674,12 +674,12 @@ export default {
         },
       },
       channelMarkerEvents: {
-        click: (e) => {},
+        click: e => {},
       },
       // ===========地图点标记方法结束==========
       // =============折线方法开始========
       polylineEvents: {
-        click: (e) => {
+        click: e => {
           if (this.isClick) {
             // 获取经纬度
             const lnglat = this.getLngLat(e);
@@ -691,7 +691,7 @@ export default {
         },
       },
       channelPolylineEvents: {
-        click: (e) => {
+        click: e => {
           let channelPolyLineAll = self.$refs.channelPolyLine;
           self.channelStyleClearALL();
           self.channelStyle(e.target.Ce.path, true);
@@ -709,38 +709,38 @@ export default {
       navMarkerEvents: {},
       // ===============航标圆方法==============
       navCircleEvents: {
-        move: (e) => {
+        move: e => {
           this.$emit('navCircleMove', e.lnglat);
         },
-        adjust: (e) => {
+        adjust: e => {
           this.$emit('navCircleAdjust', e.radius);
         },
-        mouseup: (e) => {},
+        mouseup: e => {},
       },
       //=====================港口maker方法==============
       addPortEvents: {
         // 移入港口maker
-        mouseover: (e) => {
+        mouseover: e => {
           // this.$emit('mouseover')
         },
         //移除港口maker
-        mouseout: (e) => {
+        mouseout: e => {
           // this.$emit('mouseout')
         },
       },
       // =================港口圆方法==================
       portCircleEvents: {
-        adjust: (e) => {
+        adjust: e => {
           // this.$emit('navCircleAdjust', e.radius);
           this.portCircle.radius = e.radius;
         },
       },
       // ==================新增港口圆方法=============
       addPortCircleEvents: {
-        adjust: (e) => {
+        adjust: e => {
           this.addPortData.radius = e.radius;
         },
-        move: (e) => {
+        move: e => {
           console.log(e);
           this.addPortData.location.latitude = e.lnglat.lat;
           this.addPortData.location.longitude = e.lnglat.lng;
@@ -748,7 +748,7 @@ export default {
       },
       // =================港口范围多边形方法==================
       portpolylineEvents: {
-        adjust: (e) => {
+        adjust: e => {
           let area = Math.round(AMap.GeometryUtil.ringArea(this.boundsList));
           this.$emit('adjustPolyline', area, this.boundsList);
         },
@@ -758,13 +758,13 @@ export default {
       },
       //===================新增港口范围多边形编辑方法================
       addPortpolylineEvents: {
-        adjust: (e) => {
+        adjust: e => {
           this.$emit('addAdjustPolyline');
         },
       },
       // ==================泊位范围多边形编辑方法=================
       berthpolylineEvents: {
-        adjust: (e) => {
+        adjust: e => {
           let index;
           for (const i in this.berthPolylineChangeList) {
             this.berthPolylineChangeList[i] == true ? (index = i) : '';
@@ -1042,7 +1042,7 @@ export default {
             this.VueMap.setFitView();
           }
         })
-        .catch((err) => {
+        .catch(err => {
           console.log(err);
           this.zoom = 10;
           this.center = [
@@ -1320,16 +1320,14 @@ export default {
   destroyed() {
     this.completedCallbacks = [];
   },
-  mounted() {
-    
-  },
+  mounted() {},
   watch: {
     shipDataList(newValue, oldValue) {
       // for (const i of this.shipDataList) {
       //   i.location = trun(i.location);
       //   console.log(i)
       // }
-      console.log("this.shipDataList",this.shipDataList)
+      console.log('this.shipDataList', this.shipDataList);
 
       // 在开启轨迹的时候,绘制所有船只轨迹
       if (this.isOpenTrack) {
@@ -1344,9 +1342,8 @@ export default {
       this.allShipTransform();
       // 有新的船只添加或者第一次进入页面时候,自适应一下地图
       if (newValue.length != oldValue.length || this.isChangeCenter) {
-        
         this.center = [this.shipDataList[0].location.longitude, this.shipDataList[0].location.latitude];
-        console.log('中心点',this.center)
+        console.log('中心点', this.center);
         bus.$emit('isShowIndex', {
           val: false,
         });
@@ -1491,7 +1488,7 @@ export default {
       handler() {
         // console.log(this.channelNavaidLine);
         this.onCompleted(
-          (x) =>
+          x =>
             (this.channelNavigation.fromAll = navPolyline(
               this.VueMap,
               this.channelNavigation.fromAll,
