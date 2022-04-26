@@ -11,11 +11,11 @@
           <el-button type="primary" @click="immediatelyReturn()">立即返航</el-button>
           <!-- <el-button type="primary" @click="softReset()">无人船软复位</el-button> -->
         </div>
-        <p class="action-network-error" v-if="!$store.state.isNetworkConnected">网络连接错误，请稍后 <i class="el-icon-loading"></i></p>
+        <p class="action-network-error" v-if="$store.state.isNetworkConnected">网络连接错误，请稍后 <i class="el-icon-loading"></i></p>
       </h2>
       <h2 v-else>
         {{ usvName }}
-        <p class="action-network-error" v-if="!$store.state.isNetworkConnected">网络连接错误，请稍后 <i class="el-icon-loading"></i></p>
+        <p class="action-network-error" v-if="$store.state.isNetworkConnected">网络连接错误，请稍后 <i class="el-icon-loading"></i></p>
       </h2>
     </div>
     <div class="actionplan-amap">
@@ -57,9 +57,9 @@
           <p>电量</p>
         </div>
         <!-- 方位角显示仪表盘（姿态盘） -->
-        <div class="actionplan-setyleDashboard">
+        <!-- <div class="actionplan-setyleDashboard">
           <styleDashbord :setmanned="setmanned"></styleDashbord>
-        </div>
+        </div> -->
       </div>
 
       <el-button v-show="isShowVide" type="primary" @click="closeVideo" class="close-video">关闭监控</el-button>
@@ -290,7 +290,8 @@ export default {
       const { data: res } = await this.$http.post(`/v1/ship/getShipList`);
       if (!res.error_code) {
         // 船只名字
-        this.usvName = res.data.shipInfoList.name;
+        this.usvName = res.data.shipInfoList[0].name;
+        
         // 当前船只是否在执行计划,获取执行计划的id
         if (res.data.isExecutingPlan) {
           if (this.planId != res.data.executingPlanId) {
@@ -307,29 +308,29 @@ export default {
     // },
     // 获取计划信息
     async getPlanInfor() {
-      const { data: res } = await this.$http.get(`plan/getexecutioncontext?usvId=${this.usvId}`);
-      if (!res.error_code) {
-        if (res.data.stage == 4) {
-          this.$confirm('计划已经执行完毕是否退出页面?', '提示', {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消',
-            type: 'warning'
-          })
-            .then(() => {
-              this.$message({
-                type: 'success',
-                message: '退出成功!'
-              });
-              let deletePath = this.$router.history.current.path;
-              this.$store.commit('VueXDeleteTags', deletePath);
-              this.$router.go(-1);
-            })
-            .catch(() => {
-              // 将当前状态直接改为 运行状态
-              this.planId = null;
-            });
-        }
-      }
+      // const { data: res } = await this.$http.get(`plan/getexecutioncontext?usvId=${this.usvId}`);
+      // if (!res.error_code) {
+      //   if (res.data.stage == 4) {
+      //     this.$confirm('计划已经执行完毕是否退出页面?', '提示', {
+      //       confirmButtonText: '确定',
+      //       cancelButtonText: '取消',
+      //       type: 'warning'
+      //     })
+      //       .then(() => {
+      //         this.$message({
+      //           type: 'success',
+      //           message: '退出成功!'
+      //         });
+      //         let deletePath = this.$router.history.current.path;
+      //         this.$store.commit('VueXDeleteTags', deletePath);
+      //         this.$router.go(-1);
+      //       })
+      //       .catch(() => {
+      //         // 将当前状态直接改为 运行状态
+      //         this.planId = null;
+      //       });
+      //   }
+      // }
     },
     // ======================通过signalr获取信息==========================
     // 同时获取两种信息
@@ -607,16 +608,16 @@ export default {
         window.clearInterval(this.routerTrackTwo.Time);
       }
       // 5分钟获取一次token
-      this.TokenUpdateTime = window.setInterval(() => {
-        this.getUsvName();
-      }, 300000);
+      // this.TokenUpdateTime = window.setInterval(() => {
+      //   this.getUsvName();
+      // }, 300000);
       // 十秒检查一次视频token是否快过期,快过期给新的tokne
-      this.checkTokenInterval = window.setInterval(() => {
-        if (checkTokenTime(this.videoTokenData.exp, 3600)) {
-          // 更新token的函数
-          this.isShowVide && getOnlineVideoToken(this.videoTokenData);
-        }
-      }, 10000);
+      // this.checkTokenInterval = window.setInterval(() => {
+      //   if (checkTokenTime(this.videoTokenData.exp, 3600)) {
+      //     // 更新token的函数
+      //     this.isShowVide && getOnlineVideoToken(this.videoTokenData);
+      //   }
+      // }, 10000);
 
       //每一分钟简化一次新的轨迹线
       this.routerTrack.Time = window.setInterval(() => {
