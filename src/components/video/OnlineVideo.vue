@@ -1,6 +1,6 @@
 <template>
   <div>
-    <video id="videoElement" controls autoplay muted width="600px" height="300px"></video>
+    <video id="videoElement" controls autoplay muted width="100%" height="100%"></video>
   </div>
 </template>
 

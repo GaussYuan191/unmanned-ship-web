@@ -12,9 +12,22 @@
               :clearTrackBtn="clearTrackBtn"
               ref="Indexamap"
             ></Amap>
+            <!-- 视频显示 -->
+            <div class="online-video">
+              <OnlineVideo
+                v-show="isShowVide"
+                :accessToken="videoTokenData.token"
+                :url="videoTokenData.url"
+                :width="300"
+                :height="200"
+                ref="refOnlineVideo"
+              ></OnlineVideo>
+            </div>
             <el-button v-if="isShowTrackBtn" @click="openTrack" class="track-btn" type="primary">开启轨迹</el-button>
             <el-button v-else @click="closeTrack" class="track-btn" type="primary">关闭轨迹</el-button>
             <el-button v-if="!isShowTrackBtn" @click="clearTrack" class="clear-btn" type="primary">清除轨迹</el-button>
+            <el-button v-show="isShowVide" type="primary" @click="closeVideo" class="track-btn">关闭监控</el-button>
+            <el-button v-show="!isShowVide" type="primary" @click="openVideo" class="track-btn">开启监控</el-button>
           </el-col>
         </el-row>
       </el-card>
@@ -35,6 +48,9 @@ import bus from '@/components/common/bus';
 import enums from '@/utils/enums';
 import { trun } from '@/utils/common';
 import { sleep } from '@/utils/sleep';
+import { viewOnlineVideo, getOnlineVideoToken } from '@/utils/request';
+// 实时监控组件
+import OnlineVideo from '@/components/video/OnlineVideo';
 export default {
   name: 'Index',
   //数据
@@ -77,6 +93,13 @@ export default {
       DisconnectMessage: '',
       timer: null,
       websock: null,
+      // 是否显示diveo
+      isShowVide: true,
+      videoTokenData: {
+        url: null,
+        token: null,
+        exp: null,
+      },
     };
   },
   //组件传值
@@ -125,10 +148,17 @@ export default {
           // item.runtimeInfo.state = enums.usvState(item.runtimeInfo.state);
           // if (item.runtimeInfo.location) {
           //   this.routerTrackLine.push(item.runtimeInfo.location);
-            this.shipNameList.push(item.name);
+          this.shipNameList.push(item.name);
           // }
           this.usvIdList.push(item.sid);
         }
+      } else {
+        const h = this.$createElement;
+        this.$notify.error({
+          title: '警告',
+          message: h('i', { style: 'color: teal' }, res.msg),
+          offset: 100,
+        });
       }
     },
     websocketsend(Data) {
@@ -138,6 +168,24 @@ export default {
     websocketclose(e) {
       //关闭
       console.log('断开连接', e);
+    },
+    // 关闭video
+    closeVideo() {
+      this.isShowVide = false;
+      console.log(this.$refs.refOnlineVideo);
+      this.$refs.refOnlineVideo.colseVideo();
+      if (this.$refs.actionplanBatteryAndSetyleDashboard) {
+        this.$refs.actionplanBatteryAndSetyleDashboard.style.top = '0px';
+      }
+    },
+    // 开启video
+    openVideo() {
+      this.isShowVide = true;
+      // 调用子组件的开启方法
+      this.$refs.refOnlineVideo.openVideo();
+      if (this.$refs.actionplanBatteryAndSetyleDashboard) {
+        this.$refs.actionplanBatteryAndSetyleDashboard.style.top = '200px';
+      }
     },
     async getShipData() {
       this.getloading = true;
@@ -302,6 +350,7 @@ export default {
   height: 85vh;
   .el-col {
     height: 100%;
+    position: relative;
   }
 }
 /deep/ .el-card__body {
@@ -320,5 +369,18 @@ export default {
   position: absolute;
   right: 10px;
   bottom: 52px;
+}
+.online-video {
+  position: absolute;
+  right: 0;
+  top: 400px;
+  width: 300px;
+  height: 200px;
+  z-index: 999;
+}
+.close-video {
+  position: absolute;
+  bottom: 10px;
+  right: 90px;
 }
 </style>
