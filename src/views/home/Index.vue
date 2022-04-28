@@ -4,6 +4,7 @@
       <el-card>
         <el-row class="map">
           <el-col>
+            
             <Amap
               @ViewLocation="ViewLocation"
               :shipDataList="shipDataList"
@@ -23,6 +24,7 @@
                 ref="refOnlineVideo"
               ></OnlineVideo>
             </div>
+            
             <el-button v-if="isShowTrackBtn" @click="openTrack" class="track-btn" type="primary">开启轨迹</el-button>
             <el-button v-else @click="closeTrack" class="track-btn" type="primary">关闭轨迹</el-button>
             <el-button v-if="!isShowTrackBtn" @click="clearTrack" class="clear-btn" type="primary">清除轨迹</el-button>
@@ -31,6 +33,9 @@
           </el-col>
         </el-row>
       </el-card>
+    </div>
+    <div> 
+      <OnlineVideo/>
     </div>
   </div>
 </template>
@@ -50,7 +55,7 @@ import { trun } from '@/utils/common';
 import { sleep } from '@/utils/sleep';
 import { viewOnlineVideo, getOnlineVideoToken } from '@/utils/request';
 // 实时监控组件
-import OnlineVideo from '@/components/video/OnlineVideo';
+import OnlineVideo from '../../components/video/OnlineVideo.vue';
 export default {
   name: 'Index',
   //数据
@@ -282,6 +287,7 @@ export default {
   components: {
     Breadcrumb,
     Amap,
+    OnlineVideo
   },
   //创建前
   beforeCreate() {},
@@ -373,7 +379,7 @@ export default {
 .online-video {
   position: absolute;
   right: 0;
-  top: 400px;
+  top: 180px;
   width: 300px;
   height: 200px;
   z-index: 999;
