@@ -27,8 +27,8 @@
         <el-table-column label="摄像机序列号" prop="Cameras[0].cid"></el-table-column>
         <el-table-column label="摄像机状态" prop="Cameras[0].cstatus">
           <template slot-scope="scope">
-            <el-tag v-if="scope.row.cstatus == 0" type="danger">异常</el-tag>
-            <el-tag v-if="scope.row.cstatus == 1">正常</el-tag>
+            <el-tag v-if="scope.row.cstatus === 0" type="danger">异常</el-tag>
+            <el-tag v-if="scope.row.cstatus === 1">正常</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="无人船状态" prop="status">
@@ -48,7 +48,7 @@
                 <i class="el-icon-arrow-down el-icon--right"></i>
               </el-button>
               <el-dropdown-menu slot="dropdown">
-                <el-dropdown-item command="info">修改信息</el-dropdown-item>                  
+                <el-dropdown-item command="info">修改信息</el-dropdown-item>
                 <el-dropdown-item v-if="!scope.row.isExecutingPlan" command="action">执行计划</el-dropdown-item>
                 <el-dropdown-item v-if="viewRunStatusFrom.state != '离线'" command="viewRunStatus">船只运行状态</el-dropdown-item>
                 <el-dropdown-item command="onlineVideo">查看实时视频</el-dropdown-item>
@@ -94,65 +94,6 @@
       <span slot="footer" class="dialog-footer">
         <el-button @click="editlogVisible = false">取 消</el-button>
         <el-button type="primary" @click="editShip" :loading="editinfoLoading">确 定</el-button>
-      </span>
-    </el-dialog>
-    <!-- 修改配置无人船dialog -->
-    <el-dialog title="配置状态" :visible.sync="configlogVisible" width="30%" center @close="closeConfig">
-      <el-form ref="configFormRef" :model="configFrom" class="configbox" :rules="configRules">
-        <el-form-item>
-          <span>服务器通信中断保护</span>
-          <el-col>
-            <el-switch
-              v-model="configFrom.enableServerCommunicationCircuitBreaker"
-              active-color="#36EF1E"
-              inactive-color="#EE4949"
-            ></el-switch>
-          </el-col>
-        </el-form-item>
-        <el-form-item>
-          <span>遥控器通信中断保护</span>
-          <el-col>
-            <el-switch
-              v-model="configFrom.enableRemoteControlCommunicationCircuitBreaker"
-              active-color="#36EF1E"
-              inactive-color="#EE4949"
-            ></el-switch>
-          </el-col>
-        </el-form-item>
-        <el-form-item>
-          <span>自动避障</span>
-          <el-col>
-            <el-switch v-model="configFrom.enableObstacleAvoidance" active-color="#36EF1E" inactive-color="#EE4949"></el-switch>
-          </el-col>
-        </el-form-item>
-        <el-form-item>
-          <span>低电量返航</span>
-          <el-col>
-            <el-switch v-model="configFrom.enableLowBatteryReturn" active-color="#36EF1E" inactive-color="#EE4949"></el-switch>
-          </el-col>
-        </el-form-item>
-        <el-form-item v-show="configFrom.enableLowBatteryReturn" prop="thresholdBatteryLevel">
-          <span>电量</span>
-          <el-col>
-            <el-progress
-              :width="80"
-              :stroke-width="6"
-              type="dashboard"
-              :percentage="Number(configFrom.thresholdBatteryLevel)"
-              :color="colors"
-            ></el-progress>
-          </el-col>
-          <el-col>
-            <el-slider v-model="configFrom.thresholdBatteryLevel" show-input :max="99"></el-slider>
-          </el-col>
-          <!-- <el-col>
-            <el-input v-model="configFrom.thresholdBatteryLevel" class="retrun-power" type="number"></el-input>
-          </el-col>-->
-        </el-form-item>
-      </el-form>
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="configlogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="btneditConfig" :loading="configLoading">确 定</el-button>
       </span>
     </el-dialog>
     <!-- 运行状态dialog -->
@@ -320,25 +261,6 @@ import enums from '@/utils/enums';
 export default {
   name: 'Shipinfo',
   data() {
-    // 自定义校验规则
-    // 检查电量
-    var checkPower = (rule, value, cb) => {
-      //验证输入的电量范围
-      const regPower = /^(([1-8][0-9]?|9[0-8]?)\.\d+|[1-9][0-9]?)$/;
-      if (regPower.test(value)) {
-        return cb();
-      }
-      cb(new Error('请输入1-99的数值'));
-    };
-    // 电压是否10-30
-    var checkVoltage = (rule, value, cb) => {
-      //验证输入的电量范围
-      const regVoltage = /^([12][0-9]|30)$/;
-      if (regVoltage.test(value)) {
-        return cb();
-      }
-      cb(new Error('请输入10-30的数值'));
-    };
     return {
       // 无人船状态
       loading: false,
@@ -467,59 +389,11 @@ export default {
         serialNumber: [{ required: true, message: '请输入无人船序列号', trigger: 'blur' }],
         displayName: [{ required: true, message: '请输入无人船名称', trigger: 'blur' }],
         cameraSN: [{ required: true, message: '请输入摄像机序列号', trigger: 'blur' }],
-        organizationId: [{ required: true, message: '请选择组织机构', trigger: 'change' }],
-        cameraValidationCode: [
-          { required: true, message: '请输入摄像机验证码', trigger: 'blur' },
-          { min: 6, max: 6, message: '摄像机验证码长度为6', trigger: ['blur', 'change'] },
-        ],
-        minimumBatteryVoltage: [
-          { required: true, message: '请输入最低电压值10-30V', trigger: 'blur' },
-          {
-            validator: checkVoltage,
-            trigger: ['blur', 'change'],
-          },
-        ],
-        maximumBatteryVoltage: [
-          { required: true, message: '请输入最高电压值10-30V', trigger: 'blur' },
-          {
-            validator: checkVoltage,
-            trigger: ['blur', 'change'],
-          },
-        ],
       },
       // 修改船信息校验规则
       editRules: {
         displayName: [{ required: true, message: '请输入船只名称', trigger: 'blur' }],
-        organizationId: [{ required: true, message: '请选择组织机构', trigger: 'change' }],
-        cameraValidationCode: [
-          { required: true, message: '请输入摄像机验证码', trigger: 'blur' },
-          { min: 6, max: 6, message: '摄像机验证码长度为6', trigger: ['blur', 'change'] },
-        ],
         cameraSN: [{ required: true, message: '请输入摄像机序列号', trigger: 'blur' }],
-        minimumBatteryVoltage: [
-          { required: true, message: '请输入最低电压值10-30V', trigger: 'blur' },
-          {
-            validator: checkVoltage,
-            trigger: ['blur', 'change'],
-          },
-        ],
-        maximumBatteryVoltage: [
-          { required: true, message: '请输入最高电压值10-30V', trigger: 'blur' },
-          {
-            validator: checkVoltage,
-            trigger: ['blur', 'change'],
-          },
-        ],
-      },
-      // 修改配置信息的校验规则
-      configRules: {
-        thresholdBatteryLevel: [
-          { required: true, message: '请输入返航电量', trigger: 'blur' },
-          {
-            validator: checkPower,
-            trigger: 'change',
-          },
-        ],
       },
       // 执行计划校验规则
       actiomRules: {
@@ -553,7 +427,7 @@ export default {
       var query = this.shipQuery.condition.keyword;
       var page = this.shipQuery.page;
       var size = this.shipQuery.size;
-      const { data: res } = await this.$http.post(`/v1/ship/getShipList`, { reqPageNum: page, reqPageSize: size });
+      const { data: res } = await this.$http.post(`/v1/ship/getShipList`, { reqPageNum: page, reqPageSize: size, keyword: query });
       if (!res.error_code) {
         this.shipInfoList = res.data.shipInfoList;
         this.total = res.data.total; // 将shipInfoList得state转换成对应得无人船状态
@@ -561,8 +435,11 @@ export default {
         // for (const item of this.shipInfoList) {
         //   item.runtimeInfo.state = enums.usvState(item.runtimeInfo.state);
         // }
-        this.getloading = false;
+      } else {
+        this.shipInfoList = [];
       }
+
+      this.getloading = false;
     },
     changeShipData() {
       this.shipQuery.page = 1;
@@ -574,7 +451,7 @@ export default {
       let page = this.planQuery.page;
       let size = this.planQuery.size;
       const { data: res } = await this.$http.post(
-        `/v1/plan/getPlanList`, { reqPageNum: page, reqPageSize: size }
+        `/v1/plan/getPlanList`, { reqPageNum: page, reqPageSize: size, keyword: query}
       );
       if (!res.error_code) {
         this.planList = res.data.planList;
@@ -742,18 +619,6 @@ export default {
         this.showEditShip(this.shipId);
         this.editlogVisible = true;
       }
-      // 修改配置
-      if (command == 'config') {
-        this.showConfigInfo(this.dropdownScope);
-      }
-      // 恢复出厂设置
-      if (command == 'reset') {
-        this.reset(this.dropdownScope);
-      }
-      // 设置返航点
-      if (command == 'returnHome') {
-        this.showReturnHome();
-      }
       // 执行计划
       if (command == 'action') {
         // 不调用查看视频函数,就无法获取到token,无法播放视频
@@ -767,15 +632,6 @@ export default {
         this.showviewRunStatus(this.dropdownScope);
       }
 
-      // 测试尝试
-      // if (process.env.VUE_APP_DEBUG == 1 &&command == 'viewPlan') {
-      //   this.viewOnlineVideo(this.dropdownScope);
-      //   this.showviewRunStatusa(this.dropdownScope);
-      // }
-      // if (process.env.VUE_APP_DEBUG == 1 &&command == 'viewPlan2') {
-      //   this.viewOnlineVideo(this.dropdownScope);
-      //   this.showviewRunStatusa22(this.dropdownScope);
-      // }
       // 查看状态信息
       if (command == 'viewStatusInfo') {
         this.viewRunStatusdialogVisible = true;

@@ -12,16 +12,14 @@
           <!-- 地图 -->
           <el-col :span="19">
             <Amap
-              @LngLat="getLngLat"
               @ViewLocation="ViewLocation"
-              :pointDataList="pointList"
-              :isClick="isClick"
-              :routerTrackLineLoca="routerTrackLine"
-              :routerTrackLineTwoLoca="routerTrackLineTwo"
-              :targetDistance="targetDistance"
-              :setmanned="setmanned"
-              ref="amap"
+              :shipDataList="shipDataList"
+              :shipNameList="shipNameList"
+              :isOpenTrack="!isShowTrackBtn"
+              :clearTrackBtn="clearTrackBtn"
+              ref="Indexamap"
             ></Amap>
+
           </el-col>
           <!-- 计划列表 -->
           <el-col :span="5">
@@ -46,7 +44,7 @@
               <el-table-column label="操作" width="63px">
                 <template slot-scope="scope">
                   <!-- 修改 -->
-                  <i class="el-icon-edit" @click="showEdit(scope)"></i>
+<!--                  <i class="el-icon-edit" @click="showEdit(scope)"></i>-->
                   <!-- 删除 -->
                   <i class="el-icon-delete" @click="deletePlan(scope)"></i>
                 </template>
@@ -68,21 +66,21 @@
       <!-- 按钮信息区域 -->
       <el-col class="footbox">
         <div class="plan-lfn-lon">
-          <div>
-            <span>经纬度:</span>
-            <el-input v-model="lnglat.value" class="LngLatInput"></el-input>
-          </div>
-          <div>
-            <span>wgs84坐标:</span>
-            <el-input v-model="LatiLongConversion.setLatiLong" class="LngLatInput-wgs"></el-input>
-          </div>
+<!--          <div>-->
+<!--            <span>经纬度:</span>-->
+<!--            <el-input v-model="lnglat.value" class="LngLatInput"></el-input>-->
+<!--          </div>-->
+<!--          <div>-->
+<!--            <span>wgs84坐标:</span>-->
+<!--            <el-input v-model="LatiLongConversion.setLatiLong" class="LngLatInput-wgs"></el-input>-->
+<!--          </div>-->
         </div>
-        <span class="footbox-locaton-span">区域:</span>
-        <el-input @input="changeAddress" v-model="address" class="LngLatInput"></el-input>
-        <el-button type="primary" @click="addPoints" v-show="!isClick && !isRouteTrack">编辑航线</el-button>
+<!--        <span class="footbox-locaton-span">区域:</span>-->
+<!--        <el-input @input="changeAddress" v-model="address" class="LngLatInput"></el-input>-->
+<!--        <el-button type="primary" @click="addPoints" v-show="!isClick && !isRouteTrack">编辑航线</el-button>-->
         <el-button type="primary" @click="drawPlanPoints" v-show="isClick" :loading="isUpData">保存</el-button>
         <el-button type="danger" @click="cancelMarker" v-show="isClick">取消编辑</el-button>
-        <el-button type="primary" @click="routeTrackpan" v-show="!isClick && !isRouteTrack">轨迹跟踪</el-button>
+<!--        <el-button type="primary" @click="routeTrackpan" v-show="!isClick && !isRouteTrack">轨迹跟踪</el-button>-->
         <el-button type="primary" @click="stopRouteTrack" v-show="!isClick && isRouteTrack">停止轨迹跟踪</el-button>
         <el-button type="danger" @click="clearRouteTrack" v-show="!isClick && routerTrackLine[0] && !isRouteTrack">清除轨迹</el-button>
         <el-button type="primary" @click="showAction" v-show="!isClick && !isRouteTrack">执行计划</el-button>
@@ -136,7 +134,7 @@
             </el-select>
           </el-form-item>
           <el-form-item>
-            <!-- 选择返航方式 -->
+            <!-- 计划方式 -->
             <el-radio v-model="actiomFrom.returnMode" :label="1">{{
               enums.returnMode(1)
             }}</el-radio>
@@ -153,21 +151,21 @@
         </span>
       </el-dialog>
       <!-- 轨迹跟踪 -->
-      <el-dialog title="轨迹跟踪" :visible.sync="routeTrackDialogTableVisible" width="30%" center>
-        <el-form ref="routeTrackFormRef" label-width="110px" :rules="routeTrackRules" :model="routeTrackFrom">
-          <el-form-item label="绘制轨迹船只" prop="usvId">
-            <el-select placeholder="请选择" v-model="routeTrackFrom.usvId" clearable>
-              <el-option v-for="item in shipInfoList" :key="item.sid" :label="item.name" :value="item.sid"></el-option>
-            </el-select>
-          </el-form-item>
-        </el-form>
-        <span slot="footer" class="dialog-footer">
-          <el-button @click="routeTrackFalse">取 消</el-button>
-          <el-button type="primary" @click="routeTrackPlan" :loading="isrouteTrackFalse"
-            >确 定</el-button
-          >
-        </span>
-      </el-dialog>
+<!--      <el-dialog title="轨迹跟踪" :visible.sync="routeTrackDialogTableVisible" width="30%" center>-->
+<!--        <el-form ref="routeTrackFormRef" label-width="110px" :rules="routeTrackRules" :model="routeTrackFrom">-->
+<!--          <el-form-item label="绘制轨迹船只" prop="usvId">-->
+<!--            <el-select placeholder="请选择" v-model="routeTrackFrom.usvId" clearable>-->
+<!--              <el-option v-for="item in shipInfoList" :key="item.sid" :label="item.name" :value="item.sid"></el-option>-->
+<!--            </el-select>-->
+<!--          </el-form-item>-->
+<!--        </el-form>-->
+<!--        <span slot="footer" class="dialog-footer">-->
+<!--          <el-button @click="routeTrackFalse">取 消</el-button>-->
+<!--          <el-button type="primary" @click="routeTrackPlan" :loading="isrouteTrackFalse"-->
+<!--            >确 定</el-button-->
+<!--          >-->
+<!--        </span>-->
+<!--      </el-dialog>-->
     </div>
   </div>
 </template>
@@ -201,7 +199,6 @@ export default {
       enums: enums,
       ismarker: false,
       loading: false,
-      visible: false,
       isClick: false,
       // 区域搜索框
       address: '',
@@ -265,6 +262,7 @@ export default {
       routerTrackLine: [],
       routerTrackLineTwo: [],
       isRouteTrack: false,
+      clearTrackBtn: false,
       routerTrackLineTime: null,
       isrouteTrackFalse: false,
       // 执行计划
@@ -292,7 +290,6 @@ export default {
         usvId: null,
       },
       drawer: false,
-      breadcrumbList: ['测量计划管理', '计划管理'],
       // 校验规则
       editRules: {
         name: [
@@ -344,10 +341,79 @@ export default {
       // 搜索防抖
       searchTime: null,
       DisconnectMessage: '',
+      shipDataList: [],
+      // 所有船只的名称
+      shipNameList: [],
     };
   },
   props: {},
   methods: {
+    initWebSocket() {
+      //初始化weosocket
+      const wsuri = 'ws://127.0.0.1:8080/v1/ws?id=6&type=shipData&sid=1';
+      this.websock = new WebSocket(wsuri);
+      this.websock.onmessage = this.websocketonmessage;
+      this.websock.onopen = this.websocketonopen;
+      this.websock.onerror = this.websocketonerror;
+      this.websock.onclose = this.websocketclose;
+    },
+    websocketonopen() {
+      //连接建立之后执行send方法发送数据
+      let actions = { test: '12345' };
+      this.websocketsend(JSON.stringify(actions));
+    },
+    websocketonerror() {
+      //连接建立失败重连
+      this.initWebSocket();
+    },
+    websocketonmessage(e) {
+      //数据接收
+      const res = JSON.parse(e.data);
+      console.log(res);
+      if (!res.error_code) {
+        let flag = false;
+        this.shipInfoList = res.data;
+        // this.shipDataList.push(res.data);
+        this.shipDataList = [res.data];
+        // this.shipDataList = this.shipDataList.map(item => {
+        //   if (item.sid == res.data.sid) {
+        //     flag = true;
+        //     return res.data;
+        //   }
+        // });
+        // if (!flag) {
+        //   this.shipDataList.push(res.data);
+        // }
+        console.log('aaa', this.shipDataList, res.data);
+        console.log('bbb', this.shipInfoList);
+        this.total = 1; // 将shipInfoList得state转换成对应得无人船状态
+        // 获取船只id,传回subscribeAll
+        for (const item of this.shipInfoList) {
+          // item.runtimeInfo.state = enums.usvState(item.runtimeInfo.state);
+          // if (item.runtimeInfo.location) {
+          //   this.routerTrackLine.push(item.runtimeInfo.location);
+          this.shipNameList.push(item.name);
+          // }
+          console.log("item", item);
+          this.usvIdList.push(item.sid);
+        }
+      } else {
+        const h = this.$createElement;
+        this.$notify.error({
+          title: '警告',
+          message: h('i', { style: 'color: teal' }, res.msg),
+          offset: 100,
+        });
+      }
+    },
+    websocketsend(Data) {
+      //数据发送
+      this.websock.send(Data);
+    },
+    websocketclose(e) {
+      //关闭
+      console.log('断开连接', e);
+    },
     // =====================页面加载获取数据==================
     // 从数据库请求计划列表
     async getPlanData(judge) {
@@ -357,9 +423,7 @@ export default {
       let query = this.planQuery.condition.keyword;
       let page = this.planQuery.page;
       let size = this.planQuery.size;
-      console.log("kiasihi")
       const { data: res } = await this.$http.post(`/v1/plan/getPlanList`, { reqPageNum: page, reqPageSize: size , sid: 1});
-      console.log('3632',res);
       if (!res.error_code) {
         // 数据库获取并且赋值给 planList===============
         this.planList = res.data.planList;
@@ -489,7 +553,7 @@ export default {
           bus.$on('loading', ({ loading }) => {
             this.isaddlogVisible = loading;
           });
-          const { data: res } = await this.$http.post(`/plan/add`, this.addFrom);
+          const { data: res } = await this.$http.post(`/v1/plan/add`, this.addFrom);
           if (!res.error_code) {
             console.log(res);
             this.addlogVisible = false;
@@ -514,7 +578,7 @@ export default {
     async showEdit(scope) {
       // 获得需要高亮显示的函数
       // this.currentRowIndex = scope.$index;
-      const { data: res } = await this.$http.get(`/plan/get?id=${scope.row.id}`);
+      const { data: res } = await this.$http.get(`/v1/plan/get?id=${scope.row.id}`);
       if (!res.error_code) {
         console.log(res);
         this.editFrom = res.data;
@@ -531,7 +595,7 @@ export default {
           bus.$on('loading', ({ loading }) => {
             this.iseditlogVisible = loading;
           });
-          const { data: res } = await this.$http.post(`/plan/modify`, this.editFrom);
+          const { data: res } = await this.$http.post(`v1/plan/modify`, this.editFrom);
           if (!res.error_code) {
             console.log(res);
             this.getPlanData(this.currentRowIndex);
@@ -559,7 +623,8 @@ export default {
           bus.$on('loading', ({ loading }) => {
             this.actionPlanLoad = loading;
           });
-          const { data: res } = await this.$http.post(`v1/plan/do`, {id:this.actiomFrom.usvId});
+          console.log("yunxxx",this.actiomFrom)
+          const { data: res } = await this.$http.post(`v1/plan/do`, {id:this.actiomFrom.usvId, pid:this.actiomFrom.returnMode});
           if (!res.error_code) {
             console.log(res);
             // 获取船id和计划id进行查询
@@ -619,9 +684,8 @@ export default {
         type: 'warning',
       }).catch(err => err);
       if (confirmRlust == 'confirm') {
-        const { data: res } = await this.$http.post(`/plan/delete?id=${scope.row.id}`);
+        const { data: res } = await this.$http.post(`v1/plan/delete`,{id:scope.row.id});
         if (!res.error_code) {
-          // console.log(res); 解决
           this.$message.success('删除计划成功');
           this.pointList = [];
           if (this.planList.length <= 1 && this.planQuery.page > 1) {
@@ -713,7 +777,7 @@ export default {
       if (!res.error_code) {
         console.log(res); //解决
         if (res.data.runtimeInfo.state != 0) {
-        
+
           //点击轨迹绘制，执行amaps内的回调函数，进行判断并且执行
           this.$refs.amap.onCompleted(x => this.$refs.amap.clickMapCenter());
           this.wsConnectedCbHandle = signalr.connected(this.routeTrackShow);
@@ -845,6 +909,7 @@ export default {
   created() {
     this.getPlanData();
     this.getShipData();
+    this.initWebSocket();
   },
   destroyed() {
     if (this.usvRuntimeInfoChangedId) {
@@ -856,7 +921,7 @@ export default {
   },
 
   computed: {
-    
+
   },
   beforeMount() {},
   mounted() {

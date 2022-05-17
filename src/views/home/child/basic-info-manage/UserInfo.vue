@@ -312,7 +312,7 @@ export default {
       var query = this.userQuery.condition.keyword;
       var reqPageNum = this.userQuery.page;
       var reqPageSize = this.userQuery.size;
-      const { data: res } = await this.$http.post(`v1/user/userList`, { reqPageNum, reqPageSize });
+      const { data: res } = await this.$http.post(`v1/user/userList`, { reqPageNum, reqPageSize, keyword:query });
       this.getUserLoading = false;
       if (res.error_code != 0) {
         this.$meessage.error(`${res.msg}`);
@@ -328,7 +328,7 @@ export default {
       this.userQuery.page = 1;
       this.getUserData();
     },
-  
+
     handleSizeChange(newSize) {
       this.userQuery.size = newSize;
       this.getUserData();

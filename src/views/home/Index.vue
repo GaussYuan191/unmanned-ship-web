@@ -4,7 +4,7 @@
       <el-card>
         <el-row class="map">
           <el-col>
-            
+
             <Amap
               @ViewLocation="ViewLocation"
               :shipDataList="shipDataList"
@@ -24,7 +24,7 @@
                 ref="refOnlineVideo"
               ></OnlineVideo>
             </div>
-            
+
             <el-button v-if="isShowTrackBtn" @click="openTrack" class="track-btn" type="primary">开启轨迹</el-button>
             <el-button v-else @click="closeTrack" class="track-btn" type="primary">关闭轨迹</el-button>
             <el-button v-if="!isShowTrackBtn" @click="clearTrack" class="clear-btn" type="primary">清除轨迹</el-button>
@@ -34,7 +34,7 @@
         </el-row>
       </el-card>
     </div>
-    <div> 
+    <div>
       <OnlineVideo/>
     </div>
   </div>
@@ -136,7 +136,8 @@ export default {
       if (!res.error_code) {
         let flag = false;
         this.shipInfoList = res.data;
-        this.shipDataList.push(res.data);
+        // this.shipDataList.push(res.data);
+        this.shipDataList = [res.data];
         // this.shipDataList = this.shipDataList.map(item => {
         //   if (item.sid == res.data.sid) {
         //     flag = true;
@@ -204,6 +205,7 @@ export default {
         this.shipDataList.push(res.data);
         console.log('aaa', this.shipDataList, res.data);
         this.total = 1; // 将shipInfoList得state转换成对应得无人船状态
+        console.log('bbb', this.shipInfoList);
         // 获取船只id,传回subscribeAll
         for (const item of this.shipInfoList) {
           // item.runtimeInfo.state = enums.usvState(item.runtimeInfo.state);
@@ -235,35 +237,6 @@ export default {
       });
     },
     // 获取所有事件流的回调函数
-    signalrCallback(data) {
-      // 如果没有船只数据直接显示地图
-      // !data ? (this.indexLoading = false) : '';
-      // if (data.length) {
-      //   console.log('进入了if');
-      //   this.shipDataList = data;
-      //   // 状态转换
-      //   for (let i in this.shipDataList) {
-      //     this.$set(this.shipDataList[i], 'state', enums.usvState(this.shipDataList[i].state));
-      //     i.location = trun(i.location);
-      //   }
-      //   console.log(this.shipDataList);
-      // } else {
-      //   this.viewRunStatusFrom = data;
-      //   // 状态转换
-      //   // this.viewRunStatusFrom.state = enums.usvState(data.state);
-      //   this.$set(this.viewRunStatusFrom, 'state', enums.usvState(data.state));
-      //   this.$set(this.shipDataList, 0, this.viewRunStatusFrom);
-      //   // if (this.shipDataList.length == 0) {
-      //   //   this.shipDataList.push(this.viewRunStatusFrom)
-      //   // }
-      //   // else if (data.id == this.shipDataList[this.shipDataList.length - 1].id) {
-      //   //   this.$set(this.shipDataList, this.shipDataList.length - 1, this.viewRunStatusFrom)
-      //   // }
-      //   // else {
-      //   //   this.shipDataList.push(this.viewRunStatusFrom)
-      //   // }
-      // }
-    },
     // 开机轨迹
     openTrack() {
       this.isShowTrackBtn = !this.isShowTrackBtn;
@@ -301,16 +274,6 @@ export default {
   beforeMount() {},
   //挂载完成
   mounted() {
-    // 每次点击自适应地图标点
-    // this.$refs.Indexamap.onCompleted(x => this.$refs.Indexamap.setView(this.viewRunStatusFrom));
-    // // 地图中心点变换
-    // bus.$on('isShowIndex', ({ val }) => {
-    //   this.indexLoading = val;
-    // });
-    // // 事件流断开
-    // bus.$on('Disconnect', ({ message }) => {
-    //   this.DisconnectMessage = message;
-    // });
   },
   //更新前
   beforeUpdate() {},
@@ -330,21 +293,6 @@ export default {
   },
   //监听
   watch: {
-    // eventsList() {
-    //   this.wsConnectedCbHandle = signalr.connected(this.showShipStatusInfo);
-    // },
-    // // DisconnectMessage变化了证明事件流连接发生了变化
-    // DisconnectMessage() {
-    //   if (this.DisconnectMessage) {
-    //     this.option = this.$message({
-    //       type: 'error',
-    //       message: this.DisconnectMessage,
-    //       duration: 0,
-    //     });
-    //   } else {
-    //     this.option ? this.option.close() : '';
-    //   }
-    // },
   },
 };
 </script>

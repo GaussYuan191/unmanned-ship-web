@@ -25,7 +25,7 @@ export default {
         type: 'flv',
         isLive: true,
         hasAudio: false,
-        url: 'http://124.222.218.232:8000/live/STREAM_NAME2.flv',
+        url: 'http://124.222.218.232:8000/live/STREAM_NAME.flv',
       });
       this.flvPlayer.attachMediaElement(videoElement);
       this.flvPlayer.load();
